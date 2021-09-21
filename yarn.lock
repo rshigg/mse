@@ -1682,6 +1682,11 @@ uuid@^8.3.2:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
+vite-plugin-cross-origin-isolation@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/vite-plugin-cross-origin-isolation/-/vite-plugin-cross-origin-isolation-0.1.1.tgz#f1a39f18e505c11bf237c14535de8f5cb17ef76d"
+  integrity sha512-egyW4CSWORimC2NbIJDJ8Ga1eoUBscFDvY9oLYBfiKHdYHMCiOiIeqtXbgv/2V7aYs//KIP34H2eQw1hEBARwg==
+
 vite-plugin-react-svg@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/vite-plugin-react-svg/-/vite-plugin-react-svg-0.2.0.tgz#e8464187919688e4405a6f52971375fa894d7532"

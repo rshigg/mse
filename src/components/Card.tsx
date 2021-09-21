@@ -4,7 +4,6 @@ import cx from 'classnames';
 
 import ContentEditable from 'components/ContentEditable';
 import { Card } from 'schemas/card';
-import { ScryfallCard } from 'schemas/scryfall';
 import { cardFromScryfall } from 'utils';
 
 import cardValues from 'data/consider.json';
@@ -290,7 +289,13 @@ const CardForm = ({ set = cardValues.set }) => {
         viewBox="0 0 638 468"
       >
         <image id="art-bg" xlinkHref="/backgrounds/blue.jpg" width="100%" height="100%" />
-        <image id="art" xlinkHref={cardValues.image_uris.art_crop} width="100%" height="100%" />
+        <image
+          crossOrigin="anonymous"
+          id="art"
+          xlinkHref={cardValues.image_uris.art_crop}
+          width="100%"
+          height="100%"
+        />
         <path id="art-border" d="M637.8 0H0v467.72h637.8V0zm-4.17 4.17v459.38H4.17V4.17h629.46z" />
       </svg>
 
@@ -332,7 +337,7 @@ const CardForm = ({ set = cardValues.set }) => {
   );
 };
 
-const initialValues = cardFromScryfall(cardValues as ScryfallCard);
+const initialValues = cardFromScryfall(cardValues);
 
 export default function () {
   return (

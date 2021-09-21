@@ -3,8 +3,7 @@ import reactRefresh from '@vitejs/plugin-react-refresh';
 import reactSvgPlugin from 'vite-plugin-react-svg';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
-
-const aliases = ['component', 'data', 'pages', 'schemas', 'assets', 'styles'];
+import crossOriginIsolation from 'vite-plugin-cross-origin-isolation';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -22,5 +21,6 @@ export default defineConfig({
       },
     }),
     vanillaExtractPlugin(),
+    crossOriginIsolation(),
   ],
 });

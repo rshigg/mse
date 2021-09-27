@@ -4,7 +4,7 @@ import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 
-import { cardSchema } from './schemas/card';
+import { cardSchema } from '../schemas/card';
 
 const idbBackend = new IndexedDBBackend();
 const dbPath = '/sql/mse.sqlite';
@@ -50,8 +50,8 @@ async function getDatabase() {
       CREATE VIRTUAL TABLE IF NOT EXISTS sets USING fts3(
         set_id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        code CHAR(3) NOT NULL
-        lang CHAR(2) DEFAULT 'en'
+        code CHAR(3) NOT NULL,
+        lang CHAR(2) DEFAULT "en"
       ); \
       CREATE VIRTUAL TABLE IF NOT EXISTS cards USING fts3(${cardSchema});
     `);
@@ -62,14 +62,18 @@ async function getDatabase() {
   return _db;
 }
 
+function getRows(stmt) {
+  const rows = [];
+  while (stmt.step()) {
+    rows.push(stmt.getAsObject());
+  }
+  return rows;
+}
+
 async function getAllSets() {
   let db = await getDatabase();
-  let sets = [];
   let stmt = db.prepare(`SELECT * FROM sets`);
-  while (stmt.step()) {
-    let row = stmt.getAsObject();
-    sets.push(row);
-  }
+  const sets = getRows(stmt);
   stmt.free();
 
   return sets;
@@ -86,78 +90,51 @@ async function getSetById(set_id: String) {
   return set;
 }
 
-async function createSet({ set_id, name, code }: { set_id: String; name: String; code: String }) {
+async function createSet({
+  set_id,
+  name,
+  code,
+  lang = 'en',
+}: {
+  set_id: String;
+  name: String;
+  code: String;
+  lang?: String;
+}) {
   let db = await getDatabase();
-  let stmt = db.prepare(`INSERT INTO sets (set_id, name, code) VALUES (?, ?, ?)`);
-  stmt.run([set_id, name, code]);
+  let stmt = db.prepare(`INSERT INTO sets (set_id, name, code, lang) VALUES (?, ?, ?, ?)`);
+  stmt.run([set_id, name, code, lang]);
   stmt.free();
   return await getSetById(set_id);
 }
 
-async function getCardsByset_id(set_id: String) {
+async function getCardsBySetId(set_id: String) {
   let db = await getDatabase();
-  let cards = [];
   let stmt = db.prepare(`SELECT * FROM cards WHERE set_id = ?`);
   stmt.run([set_id]);
-  while (stmt.step()) {
-    let row = stmt.getAsObject();
-    cards.push(row);
-  }
+  const cards = getRows(stmt);
   stmt.free();
 
   return cards;
 }
 
-async function createCard(cardId: String, set_id: String) {
+async function createCard(card_id: String, set_id: String) {
   let db = await getDatabase();
-  let stmt = db.prepare(`INSERT INTO cards (cardId, set_id) VALUES (?, ?)`);
-  stmt.run([cardId, set_id]);
+  let stmt = db.prepare(`INSERT INTO cards (card_id, set_id) VALUES (?, ?)`);
+  stmt.run([card_id, set_id]);
   stmt.free();
 }
-
-init();
-
-// if (typeof self !== 'undefined') {
-//   const pm = (type, data) => {
-//     self.postMessage({ type, ...data });
-//   };
-
-//   self.onmessage = async (msg) => {
-//     logWorkerMessage(msg);
-
-//     switch (msg.data.type) {
-//       case 'init': {
-//         const sets = await getAllSets();
-//         pm('init', { sets });
-//         break;
-//       }
-//       case 'get_set': {
-//         const { set_id } = msg.data;
-//         if (set_id) {
-//           let set = await getSet(msg.data.set_id);
-//           pm('set', { set });
-//         }
-//         break;
-//       }
-//       case 'create_set': {
-//         let set = await createSet(msg.data.values);
-//         pm('set', { set });
-//         break;
-//       }
-//       default:
-//         break;
-//     }
-//   };
-// }
 
 const methods = {
   getAllSets,
   getSetById,
   createSet,
-  getCardsByset_id,
+  getCardsBySetId,
   createCard,
 };
 
 export type MainWorker = typeof methods;
+
+init();
 
 expose(methods);

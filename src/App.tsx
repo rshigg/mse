@@ -1,8 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Home from './pages/Home';
-import WorkerProvider from './WorkerContext';
+import Home from 'pages/Home';
+import Set from 'pages/Set';
+import WorkerProvider from 'worker/WorkerContext';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <main>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/set/:setId" element={<Set />} />
             </Routes>
           </main>
         </div>

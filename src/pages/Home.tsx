@@ -2,8 +2,8 @@ import React from 'react';
 import { Formik, Form, Field } from 'formik';
 import { v4 as uuid } from 'uuid';
 
-import Card from '../components/Card';
-import { useWorker } from '../WorkerContext';
+import Card from 'components/Card';
+import { useWorker } from 'worker/WorkerContext';
 
 interface FormValues {
   name: string;
@@ -16,10 +16,10 @@ const initialValues: FormValues = {
 };
 
 const Home = () => {
-  const instance = useWorker();
+  const worker = useWorker();
 
   const handleSubmit = (values: FormValues) => {
-    // worker.postMessage({ type: 'create_set', values: { setId: uuid(), ...values } });
+    worker.createSet({ set_id: uuid(), ...values });
   };
 
   return (
@@ -38,7 +38,7 @@ const Home = () => {
           <button type="submit">Create set</button>
         </Form>
       </Formik>
-      <button onClick={async () => console.log(await instance.getAllSets())}>Get sets</button>
+      <button onClick={async () => console.log(await worker.getAllSets())}>Get sets</button>
     </>
   );
 };

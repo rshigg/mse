@@ -9,7 +9,7 @@ export type Card = {
   type_line: string;
   rarity: string;
   text: string;
-  flavor_text: string;
+  flavor_text?: string;
   power?: string;
   toughness?: string;
   loyalty?: string;

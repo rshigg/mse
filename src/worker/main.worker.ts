@@ -5,6 +5,7 @@ import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 
 import { cardSchema } from '../schemas/card';
+import { CardSet } from 'schemas/set';
 
 const idbBackend = new IndexedDBBackend();
 const dbPath = '/sql/mse.sqlite';
@@ -90,17 +91,7 @@ async function getSetById(set_id: String) {
   return set;
 }
 
-async function createSet({
-  set_id,
-  name,
-  code,
-  lang = 'en',
-}: {
-  set_id: String;
-  name: String;
-  code: String;
-  lang?: String;
-}) {
+async function createSet({ set_id, name, code, lang = 'en' }: CardSet) {
   let db = await getDatabase();
   let stmt = db.prepare(`INSERT INTO sets (set_id, name, code, lang) VALUES (?, ?, ?, ?)`);
   stmt.run([set_id, name, code, lang]);

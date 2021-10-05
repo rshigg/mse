@@ -1,4 +1,4 @@
-export type set = {
+export type CardSet = {
   set_id: string;
   name: string;
   code: string;

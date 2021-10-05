@@ -4,22 +4,20 @@ import { v4 as uuid } from 'uuid';
 
 import Card from 'components/Card';
 import { useWorker } from 'worker/WorkerContext';
+import { CardSet } from 'schemas/set';
 
-interface FormValues {
-  name: string;
-  code: string;
-}
-
-const initialValues: FormValues = {
+const initialValues: CardSet = {
+  set_id: '',
   name: '',
   code: '',
+  lang: 'en',
 };
 
 const Home = () => {
   const worker = useWorker();
 
-  const handleSubmit = (values: FormValues) => {
-    worker.createSet({ set_id: uuid(), ...values });
+  const handleSubmit = (values: CardSet) => {
+    worker.createSet({ ...values, set_id: uuid() });
   };
 
   return (

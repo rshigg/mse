@@ -1,4 +1,7 @@
 import React, { useState, ElementType, ChangeEvent, CSSProperties } from 'react';
+import cx from 'classnames';
+
+import { contentEditable } from 'styles/card.css';
 
 const activationCostRegex =
   /\n((?<mana>(\d|w|u|b|r|g|x|y)+),)?(\s?(?<word>[\w\s]+),)?(\s?(?<tap>t))?:/gim;
@@ -42,7 +45,7 @@ const ContentEditable = ({
       role="textbox"
       aria-label={label}
       onInput={handleChange}
-      className={className}
+      className={cx(contentEditable, className)}
       style={style}
       suppressContentEditableWarning={true}
     >

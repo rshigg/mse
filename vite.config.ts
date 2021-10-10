@@ -11,7 +11,6 @@ export default defineConfig({
   plugins: [
     reactRefresh(),
     VitePWA(),
-    tsconfigPaths({ root: '.' }),
     reactSvgPlugin({
       defaultExport: 'url',
       expandProps: 'end',
@@ -22,5 +21,7 @@ export default defineConfig({
     }),
     vanillaExtractPlugin(),
     crossOriginIsolation(),
+    // keep this as the last plugin
+    tsconfigPaths({ root: '.' }),
   ],
 });

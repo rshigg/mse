@@ -7,6 +7,16 @@ import { Card } from 'schemas/card';
 import { cardFromScryfall } from 'utils';
 
 import cardValues from 'data/consider.json';
+import { belerenSmallCaps, gotham, mplantin } from 'styles/fonts.css';
+import {
+  cardRender,
+  flavorText,
+  ftSeparator,
+  rulesText,
+  textboxContainer,
+  titleText,
+  typelineText,
+} from 'styles/card.css';
 
 const testImage = '/consider.png';
 
@@ -24,6 +34,7 @@ const CardForm = ({ set = cardValues.set }) => {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       id="card-render"
+      className={cardRender}
       fillRule="evenodd"
       strokeLinejoin="round"
       strokeMiterlimit="2"
@@ -108,7 +119,7 @@ const CardForm = ({ set = cardValues.set }) => {
           fill="#fff"
           fontSize="19.583"
           fontWeight="700"
-          className="beleren-smallcaps"
+          className={belerenSmallCaps}
         >
           {values.artist}
         </text>
@@ -120,7 +131,7 @@ const CardForm = ({ set = cardValues.set }) => {
           fontSize="16.667"
           fontWeight="350"
           letterSpacing="1"
-          className="gotham"
+          className={gotham}
         >
           {set.toUpperCase()} • EN
         </text>
@@ -131,7 +142,7 @@ const CardForm = ({ set = cardValues.set }) => {
           fill="#fff"
           fontSize="16.667"
           textAnchor="end"
-          className="mplantin"
+          className={mplantin}
         >
           NOT FOR SALE
         </text>
@@ -142,7 +153,7 @@ const CardForm = ({ set = cardValues.set }) => {
           fill="#fff"
           fontSize="16.667"
           fontWeight="350"
-          className="gotham"
+          className={gotham}
         >
           C
         </text>
@@ -154,7 +165,7 @@ const CardForm = ({ set = cardValues.set }) => {
           fontSize="16.667"
           fontWeight="350"
           letterSpacing="1"
-          className="gotham"
+          className={gotham}
         >
           {cardNumber}/{totalCards}
         </text>
@@ -183,16 +194,16 @@ const CardForm = ({ set = cardValues.set }) => {
       >
         <path fill="#dce6ee" d="M0 0h635.43v309.45H0z" />
         <foreignObject x="0" y="0" width="637.1" height="307.97">
-          <div className={cx('textbox-container', { 'stamp-visible': showStamp })}>
-            <Field as={ContentEditable} name="text" label="Rules text" className="rules-text" />
+          <div className={cx(textboxContainer, { 'stamp-visible': showStamp })}>
+            <Field as={ContentEditable} name="text" label="Rules text" className={rulesText} />
             {values.flavor_text && (
               <>
-                <hr className="ft-separator" />
+                <hr className={ftSeparator} />
                 <Field
                   as={ContentEditable}
                   name="flavor_text"
                   label="Flavor text"
-                  className="flavor-text"
+                  className={flavorText}
                 />
               </>
             )}
@@ -263,15 +274,13 @@ const CardForm = ({ set = cardValues.set }) => {
         />
         <svg x="7" y="-50" width="623" height="52">
           <foreignObject x="0" y="0" width="100%" height="100%">
-            <div className="typeline-content">
-              <Field
-                as={ContentEditable}
-                name="type_line"
-                label="Typeline"
-                convertSymbols={false}
-                className="nowrap"
-              />
-            </div>
+            <Field
+              as={ContentEditable}
+              name="type_line"
+              label="Typeline"
+              convertSymbols={false}
+              className={cx(typelineText, 'nowrap')}
+            />
           </foreignObject>
         </svg>
       </g>
@@ -290,7 +299,7 @@ const CardForm = ({ set = cardValues.set }) => {
       >
         <image id="art-bg" xlinkHref="/backgrounds/blue.jpg" width="100%" height="100%" />
         <image
-          crossOrigin="anonymous"
+          crossOrigin=""
           id="art"
           xlinkHref={cardValues.image_uris.art_crop}
           width="100%"
@@ -319,15 +328,13 @@ const CardForm = ({ set = cardValues.set }) => {
         />
         <svg x="8" y="-56" width="628" height="50">
           <foreignObject x="0" y="0" width="100%" height="100%">
-            <div className="title-content">
-              <Field
-                as={ContentEditable}
-                name="name"
-                label="Card name"
-                convertSymbols={false}
-                className="title-text nowrap"
-              />
-            </div>
+            <Field
+              as={ContentEditable}
+              name="name"
+              label="Card name"
+              convertSymbols={false}
+              className={cx(titleText, 'nowrap')}
+            />
           </foreignObject>
         </svg>
       </g>

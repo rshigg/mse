@@ -10,6 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     reactRefresh(),
+    // TODO: Configure PWA
     VitePWA(),
     reactSvgPlugin({
       defaultExport: 'url',

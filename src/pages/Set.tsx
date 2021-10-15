@@ -13,7 +13,8 @@ const Set = () => {
 
   useEffect(() => {
     if (setId) {
-      worker.getSetById(setId).then((s: CardSet) => setSetInfo(s));
+      worker.getSetById(setId).then((s) => setSetInfo(s));
+      worker.getCardsBySetId(setId).then((cards) => console.log(cards));
     }
   }, [setId]);
 

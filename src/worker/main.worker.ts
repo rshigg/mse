@@ -4,8 +4,8 @@ import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 
-import { cardSchema } from '../schemas/card';
-import { CardSet } from 'schemas/set';
+import { setSchema, CardSet } from '../schemas/set';
+import { cardDefaultValues, cardSchema, Card } from '../schemas/card';
 
 const idbBackend = new IndexedDBBackend();
 const dbPath = '/sql/mse.sqlite';
@@ -37,95 +37,100 @@ function init() {
 }
 
 let _db = null;
+let version = 1;
 async function getDatabase() {
   await init();
   if (_db == null) {
     _db = new SQL.Database(dbPath, { filename: true });
 
     _db.exec(`
-      PRAGMA page_size=8192;
-      PRAGMA journal_mode=MEMORY
+      PRAGMA journal_mode=MEMORY;
+      PRAGMA foreign_keys=ON;
+      PRAGMA user_version=${version};
     `);
 
     _db.exec(`
-      CREATE VIRTUAL TABLE IF NOT EXISTS sets USING fts3(
-        set_id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        code CHAR(3) NOT NULL,
-        lang CHAR(2) DEFAULT "en"
-      ); \
-      CREATE VIRTUAL TABLE IF NOT EXISTS cards USING fts3(${cardSchema});
+      CREATE TABLE IF NOT EXISTS sets (${setSchema});
+      CREATE TABLE IF NOT EXISTS cards (${cardSchema});
     `);
 
-    _db.exec('VACUUM');
+    _db.exec('VACUUM;');
   }
 
   return _db;
 }
 
-function getRows(stmt) {
-  const rows = [];
-  while (stmt.step()) {
-    rows.push(stmt.getAsObject());
-  }
-  return rows;
-}
-
-async function getAllSets() {
+async function getAllSets(): Promise<CardSet[]> {
   let db = await getDatabase();
-  let stmt = db.prepare(`SELECT * FROM sets`);
-  const sets = getRows(stmt);
-  stmt.free();
-
+  let sets = [];
+  db.each('SELECT * FROM sets', null, (row) => sets.push(row));
   return sets;
 }
 
-async function getSetById(set_id: String) {
+async function getAllCards() {
   let db = await getDatabase();
-  let stmt = db.prepare(`SELECT * FROM sets WHERE set_id = ? LIMIT 1`);
-  stmt.bind([set_id]);
-  stmt.step();
-  let set = stmt.getAsObject();
-  stmt.free();
+  let cards = [];
+  db.each('SELECT * FROM cards', null, (row) => cards.push(row));
+  return cards;
+}
 
+async function getSetById(set_id: string): Promise<CardSet> {
+  let db = await getDatabase();
+  let set;
+  db.each(`SELECT * FROM sets WHERE set_id = ?`, [set_id], (row) => {
+    set = row;
+  });
   return set;
 }
 
 async function createSet({ set_id, name, code, lang = 'en' }: CardSet) {
   let db = await getDatabase();
-  let stmt = db.prepare(`INSERT INTO sets (set_id, name, code, lang) VALUES (?, ?, ?, ?)`);
-  stmt.run([set_id, name, code, lang]);
-  stmt.free();
-  return await getSetById(set_id);
+  db.run(`INSERT INTO sets (set_id, name, code, lang) VALUES (?, ?, ?, ?)`, [
+    set_id,
+    name,
+    code,
+    lang,
+  ]);
 }
 
-async function getCardsBySetId(set_id: String) {
+async function getCardsBySetId(set_id: string): Promise<Card[]> {
   let db = await getDatabase();
-  let stmt = db.prepare(`SELECT * FROM cards WHERE set_id = ?`);
-  stmt.run([set_id]);
-  const cards = getRows(stmt);
-  stmt.free();
-
+  let cards = [];
+  db.each(`SELECT * FROM cards WHERE set_id = ?`, [set_id], (row) => {
+    const card = JSON.parse(row.data);
+    cards.push(card);
+  });
   return cards;
 }
 
-async function createCard(card_id: String, set_id: String) {
+async function createCard(card_id: string, set_id: string) {
   let db = await getDatabase();
-  let stmt = db.prepare(`INSERT INTO cards (card_id, set_id) VALUES (?, ?)`);
-  stmt.run([card_id, set_id]);
-  stmt.free();
+  const data = JSON.stringify({ card_id, set_id, ...cardDefaultValues });
+  db.run(`INSERT INTO cards VALUES (?)`, [data]);
+}
+
+async function getCardById(card_id: string): Promise<Card> {
+  let db = await getDatabase();
+  let card;
+  db.each(`SELECT * FROM cards WHERE card_id = ?`, [card_id], (row) => {
+    card = JSON.parse(row.data);
+  });
+
+  return card;
 }
 
 const methods = {
   getAllSets,
+  getAllCards,
   getSetById,
   createSet,
   getCardsBySetId,
   createCard,
+  getCardById,
 };
 
 export type MainWorker = typeof methods;
 
-init();
+await init();
 
 expose(methods);

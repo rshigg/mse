@@ -4,12 +4,12 @@ import { v4 as uuid } from 'uuid';
 
 import Card from 'components/Card';
 import { useWorker } from 'worker/WorkerContext';
-import { CardSet, setDefaultValues } from 'schemas/set';
+import { Project, projectDefaultValues } from 'schemas/project';
 
 const Home = () => {
   const { getAllSets, createSet, createCard, getCardsBySetId } = useWorker();
 
-  const [cardSets, setCardSets] = useState<CardSet[]>([]);
+  const [cardSets, setCardSets] = useState<Project[]>([]);
 
   const getSets = async () => {
     const sets = await getAllSets();
@@ -20,14 +20,14 @@ const Home = () => {
     getSets();
   }, []);
 
-  const handleSubmit = async (values: CardSet) => {
+  const handleSubmit = async (values: Project) => {
     const newSetId = uuid();
-    await createSet({ ...values, set_id: newSetId });
+    await createSet({ ...values, projectId: newSetId });
     getSets();
   };
 
   const createNewCard = async () => {
-    const [{ set_id: setId }] = await getAllSets();
+    const [{ projectId: setId }] = await getAllSets();
     if (setId) {
       const cardId = uuid();
       await createCard(cardId, setId);
@@ -38,7 +38,7 @@ const Home = () => {
   return (
     <>
       <Card />
-      <Formik initialValues={setDefaultValues} onSubmit={handleSubmit}>
+      <Formik initialValues={projectDefaultValues} onSubmit={handleSubmit}>
         <Form>
           <label>
             Name
@@ -55,8 +55,8 @@ const Home = () => {
       <br />
       <button onClick={createNewCard}>Add card</button>
       <hr />
-      {cardSets.map(({ set_id, name, code }) => (
-        <div key={set_id}>
+      {cardSets.map(({ projectId, name, code }) => (
+        <div key={projectId}>
           {name}
           <br />
           {code}

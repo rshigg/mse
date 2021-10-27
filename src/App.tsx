@@ -1,8 +1,7 @@
 import React from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 
-import Home from 'pages/Home';
-import Set from 'pages/Set';
+import CardTest from 'pages/CardTest';
 import WorkerProvider from 'worker/WorkerContext';
 
 const Layout = () => {
@@ -20,10 +19,8 @@ function App() {
     <WorkerProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="set">
-            <Route path=":setId" element={<Set />} />
-          </Route>
+          <Route path="/" element={<></>} />
+          <Route path="/cardtest" element={<CardTest />} />
         </Route>
       </Routes>
     </WorkerProvider>

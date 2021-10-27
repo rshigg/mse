@@ -1,10 +1,11 @@
+// TODO: REMOVE ONCE ABSURD-SQL MIGRATES TO TS
 // @ts-nocheck
 import initSqlJs from '@jlongster/sql.js';
 import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 
-import { setSchema, CardSet } from '../schemas/set';
+import { projectSchema, Project } from '../schemas/project';
 import { cardDefaultValues, cardSchema, Card } from '../schemas/card';
 
 const idbBackend = new IndexedDBBackend();
@@ -50,7 +51,7 @@ async function getDatabase() {
     `);
 
     _db.exec(`
-      CREATE TABLE IF NOT EXISTS sets (${setSchema});
+      CREATE TABLE IF NOT EXISTS sets (${projectSchema});
       CREATE TABLE IF NOT EXISTS cards (${cardSchema});
     `);
 
@@ -60,59 +61,54 @@ async function getDatabase() {
   return _db;
 }
 
-async function getAllSets(): Promise<CardSet[]> {
+async function getAllSets(): Promise<Project[]> {
   let db = await getDatabase();
-  let sets = [];
-  db.each('SELECT * FROM sets', null, (row) => sets.push(row));
+  let sets: Project[] = [];
+  db.each('SELECT * FROM sets', null, (row: Project) => sets.push(row));
   return sets;
 }
 
-async function getAllCards() {
+async function getAllCards(): Promise<Card[]> {
   let db = await getDatabase();
-  let cards = [];
-  db.each('SELECT * FROM cards', null, (row) => cards.push(row));
+  let cards: Card[] = [];
+  db.each('SELECT * FROM cards', null, (row: Card) => cards.push(row));
   return cards;
 }
 
-async function getSetById(set_id: string): Promise<CardSet> {
+async function getSetById(projectId: string): Promise<Project | undefined> {
   let db = await getDatabase();
-  let set;
-  db.each(`SELECT * FROM sets WHERE set_id = ?`, [set_id], (row) => {
+  let set: Project | undefined;
+  db.each(`SELECT * FROM sets WHERE projectId = ?`, [projectId], (row: Project) => {
     set = row;
   });
   return set;
 }
 
-async function createSet({ set_id, name, code, lang = 'en' }: CardSet) {
+async function createSet({ projectId, name, code }: Project) {
   let db = await getDatabase();
-  db.run(`INSERT INTO sets (set_id, name, code, lang) VALUES (?, ?, ?, ?)`, [
-    set_id,
-    name,
-    code,
-    lang,
-  ]);
+  db.run(`INSERT INTO sets (projectId, name, code) VALUES (?, ?, ?)`, [projectId, name, code]);
 }
 
-async function getCardsBySetId(set_id: string): Promise<Card[]> {
+async function getCardsBySetId(projectId: string): Promise<Card[]> {
   let db = await getDatabase();
-  let cards = [];
-  db.each(`SELECT * FROM cards WHERE set_id = ?`, [set_id], (row) => {
+  let cards: Card[] = [];
+  db.each(`SELECT * FROM cards WHERE projectId = ?`, [projectId], (row) => {
     const card = JSON.parse(row.data);
     cards.push(card);
   });
   return cards;
 }
 
-async function createCard(card_id: string, set_id: string) {
+async function createCard(cardId: string, projectId: string) {
   let db = await getDatabase();
-  const data = JSON.stringify({ card_id, set_id, ...cardDefaultValues });
+  const data = JSON.stringify({ cardId, projectId, ...cardDefaultValues });
   db.run(`INSERT INTO cards VALUES (?)`, [data]);
 }
 
-async function getCardById(card_id: string): Promise<Card> {
+async function getCardById(cardId: string): Promise<Card> {
   let db = await getDatabase();
   let card;
-  db.each(`SELECT * FROM cards WHERE card_id = ?`, [card_id], (row) => {
+  db.each(`SELECT * FROM cards WHERE cardId = ?`, [cardId], (row) => {
     card = JSON.parse(row.data);
   });
 

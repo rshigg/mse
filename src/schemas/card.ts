@@ -1,6 +1,6 @@
 export type Card = {
-  card_id: string;
-  set_id: string;
+  cardId: string;
+  projectId: string;
   name: string;
   mana_cost: string;
   cmc: number;
@@ -36,7 +36,7 @@ export const cardDefaultValues: Partial<Card> = {
 
 export const cardSchema = `
   data JSON,
-  card_id TEXT GENERATED ALWAYS AS (json_extract(data, '$.card_id')) VIRTUAL NOT NULL,
-  set_id TEXT GENERATED ALWAYS AS (json_extract(data, '$.set_id')) VIRTUAL NOT NULL,
-  FOREIGN KEY(set_id) REFERENCES sets(set_id) ON DELETE CASCADE
+  cardId TEXT GENERATED ALWAYS AS (json_extract(data, '$.cardId')) VIRTUAL NOT NULL,
+  projectId TEXT GENERATED ALWAYS AS (json_extract(data, '$.projectId')) VIRTUAL NOT NULL,
+  FOREIGN KEY(projectId) REFERENCES sets(projectId) ON DELETE CASCADE
 `;

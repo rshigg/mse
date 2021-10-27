@@ -180,7 +180,7 @@ const CardForm = ({ set = cardValues.set }) => {
       </svg>
 
       <svg
-        key={values.card_id}
+        key={values.cardId}
         id="textbox"
         fillRule="evenodd"
         strokeLinejoin="round"

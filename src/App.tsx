@@ -1,25 +1,32 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom';
 
 import Home from 'pages/Home';
 import Set from 'pages/Set';
 import WorkerProvider from 'worker/WorkerContext';
 
+const Layout = () => {
+  return (
+    <div className="app">
+      <main>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
 function App() {
   return (
-    <Router>
-      <WorkerProvider>
-        <div className="app">
-          <nav></nav>
-          <main>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/set/:setId" element={<Set />} />
-            </Routes>
-          </main>
-        </div>
-      </WorkerProvider>
-    </Router>
+    <WorkerProvider>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="set">
+            <Route path=":setId" element={<Set />} />
+          </Route>
+        </Route>
+      </Routes>
+    </WorkerProvider>
   );
 }
 

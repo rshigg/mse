@@ -131,6 +131,6 @@ const methods = {
 
 export type MainWorker = typeof methods;
 
-await init();
+init();
 
 expose(methods);

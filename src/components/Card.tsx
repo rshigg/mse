@@ -6,7 +6,7 @@ import ContentEditable from 'components/ContentEditable';
 import { Card } from 'schemas/card';
 import { cardFromScryfall } from 'utils';
 
-import cardValues from 'data/consider.json';
+import cardValues from './consider.json';
 import { belerenSmallCaps, gotham, mplantin } from 'styles/fonts.css';
 import {
   cardRender,

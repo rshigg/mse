@@ -15,7 +15,7 @@ let ready = null;
 let SQL;
 let sqlFS;
 async function _init() {
-  SQL = await initSqlJs({ locateFile: (file) => file });
+  SQL = await initSqlJs({ locateFile: (file) => `/db/${file}` });
   sqlFS = new SQLiteFS(SQL.FS, idbBackend);
   SQL.register_for_idb(sqlFS);
 

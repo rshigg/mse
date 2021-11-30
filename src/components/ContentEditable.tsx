@@ -24,7 +24,9 @@ const ContentEditable = ({
   convertSymbols = true,
   style = {},
 }: CEProps) => {
-  const [content] = useState(() => value.split(/\r?\n+/).map((text, i) => <p key={i}>{text}</p>));
+  const [content] = useState(
+    () => value?.split(/\r?\n+/).map((text, i) => <p key={i}>{text}</p>) ?? null
+  );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();

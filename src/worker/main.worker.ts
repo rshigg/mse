@@ -1,15 +1,33 @@
 // TODO: REMOVE ONCE ABSURD-SQL MIGRATES TO TS
 // @ts-nocheck
-import initSqlJs from '@jlongster/sql.js';
+import initSqlJs from '@rshig/sql';
 import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 
 import { projectSchema, Project } from '../schemas/project';
-import { cardDefaultValues, cardSchema, Card } from '../schemas/card';
+import { cardDefaultValues, cardSchema, Card, ftsCardSchema, cardTriggers } from '../schemas/card';
+import { OPERATIONS, dbPath } from './consts';
+import { cardFieldsToQuery } from './utils';
+
+const getTableInfo = (db, table) => {
+  const sql = `PRAGMA table_info(${table})`;
+  const [{ columns, values }] = db.exec(sql);
+  return values.map((row) => {
+    let data = {};
+    for (let i = 0; i < row.length; i++) {
+      data[columns[i]] = row[i];
+    }
+    return data;
+  });
+};
+
+// Creates an array of table delete queries
+const deleteTables = (tables: string[]) => {
+  return tables.map((table) => `DROP TABLE IF EXISTS ${table}`).join(';');
+};
 
 const idbBackend = new IndexedDBBackend();
-const dbPath = '/sql/mse.sqlite';
 
 let ready = null;
 let SQL;
@@ -50,29 +68,50 @@ async function getDatabase() {
       PRAGMA user_version=${version};
     `);
 
+    // prints the info of each table
+    if (process.env.NODE_ENV === 'development') {
+      _db.each(`SELECT name FROM sqlite_schema WHERE type='table';`, null, (table) => {
+        console.groupCollapsed(table.name);
+        console.table(getTableInfo(_db, table.name));
+        console.groupEnd();
+      });
+    }
+
+    _db.exec('VACUUM;');
+
     _db.exec(`
       CREATE TABLE IF NOT EXISTS sets (${projectSchema});
       CREATE TABLE IF NOT EXISTS cards (${cardSchema});
+      CREATE VIRTUAL TABLE IF NOT EXISTS cards_fts USING fts5(${ftsCardSchema});
+      ${cardTriggers}
     `);
-
-    _db.exec('VACUUM;');
   }
 
   return _db;
 }
 
 async function getAllSets(): Promise<Project[]> {
-  let db = await getDatabase();
-  let sets: Project[] = [];
-  db.each('SELECT * FROM sets', null, (row: Project) => sets.push(row));
-  return sets;
+  try {
+    let db = await getDatabase();
+    let sets: Project[] = [];
+    db.each('SELECT * FROM sets', null, (row: Project) => sets.push(row));
+    return sets;
+  } catch (error) {
+    throw new Error(error);
+  }
 }
 
 async function getAllCards(): Promise<Card[]> {
-  let db = await getDatabase();
-  let cards: Card[] = [];
-  db.each('SELECT * FROM cards', null, (row: Card) => cards.push(row));
-  return cards;
+  try {
+    let db = await getDatabase();
+    let cards: Card[] = [];
+    db.each('SELECT * FROM cards', null, (row: Card) => {
+      cards.push(row);
+    });
+    return cards;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function getSetById(projectId: string): Promise<Project | undefined> {
@@ -92,17 +131,19 @@ async function createSet({ projectId, name, code }: Project) {
 async function getCardsBySetId(projectId: string): Promise<Card[]> {
   let db = await getDatabase();
   let cards: Card[] = [];
-  db.each(`SELECT * FROM cards WHERE projectId = ?`, [projectId], (row) => {
-    const card = JSON.parse(row.data);
-    cards.push(card);
-  });
+  db.each(`SELECT * FROM cards WHERE projectId = ?`, [projectId], (row) => cards.push(row));
   return cards;
 }
 
 async function createCard(cardId: string, projectId: string) {
-  let db = await getDatabase();
-  const data = JSON.stringify({ cardId, projectId, ...cardDefaultValues });
-  db.run(`INSERT INTO cards VALUES (?)`, [data]);
+  try {
+    let db = await getDatabase();
+    const fields = { cardId, projectId, ...cardDefaultValues };
+    const [query, data] = cardFieldsToQuery(fields, OPERATIONS.INSERT);
+    db.run(query, data);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function getCardById(cardId: string): Promise<Card> {
@@ -115,6 +156,12 @@ async function getCardById(cardId: string): Promise<Card> {
   return card;
 }
 
+async function updateCard(fields: Partial<Card>) {
+  let db = await getDatabase();
+  const [query, data] = cardFieldsToQuery(fields, OPERATIONS.UPDATE);
+  db.run(query, data);
+}
+
 const methods = {
   getAllSets,
   getAllCards,
@@ -123,6 +170,7 @@ const methods = {
   getCardsBySetId,
   createCard,
   getCardById,
+  updateCard,
 };
 
 export type MainWorker = typeof methods;

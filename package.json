@@ -9,7 +9,7 @@
   "dependencies": {
     "@capsizecss/unpack": "^0.1.0",
     "@capsizecss/vanilla-extract": "^1.0.0",
-    "@jlongster/sql.js": "^1.6.7",
+    "@rshig/sql": "^1.6.2",
     "@vanilla-extract/css": "^1.6.3",
     "@vanilla-extract/vite-plugin": "^3.0.0",
     "absurd-sql": "^0.0.53",

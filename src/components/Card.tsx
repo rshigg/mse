@@ -196,12 +196,12 @@ const CardForm = ({ set = cardValues.set }) => {
         <foreignObject x="0" y="0" width="637.1" height="307.97">
           <div className={cx(textboxContainer, { 'stamp-visible': showStamp })}>
             <Field as={ContentEditable} name="text" label="Rules text" className={rulesText} />
-            {values.flavor_text && (
+            {values.flavorText && (
               <>
                 <hr className={ftSeparator} />
                 <Field
                   as={ContentEditable}
-                  name="flavor_text"
+                  name="flavorText"
                   label="Flavor text"
                   className={flavorText}
                 />
@@ -276,7 +276,7 @@ const CardForm = ({ set = cardValues.set }) => {
           <foreignObject x="0" y="0" width="100%" height="100%">
             <Field
               as={ContentEditable}
-              name="type_line"
+              name="typeLine"
               label="Typeline"
               convertSymbols={false}
               className={cx(typelineText, 'nowrap')}

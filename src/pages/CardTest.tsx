@@ -7,7 +7,7 @@ import { useWorker } from 'worker/WorkerContext';
 import { Project, projectDefaultValues } from 'schemas/project';
 
 const Home = () => {
-  const { getAllSets, createSet, createCard, getCardsBySetId } = useWorker();
+  const { getAllSets, createSet, createCard, getAllCards } = useWorker();
 
   const [cardSets, setCardSets] = useState<Project[]>([]);
 
@@ -21,17 +21,17 @@ const Home = () => {
   }, []);
 
   const handleSubmit = async (values: Project) => {
-    const newSetId = uuid();
-    await createSet({ ...values, projectId: newSetId });
+    const newProjectId = uuid();
+    await createSet({ ...values, projectId: newProjectId });
     getSets();
   };
 
   const createNewCard = async () => {
-    const [{ projectId: setId }] = await getAllSets();
-    if (setId) {
+    const [{ projectId }] = await getAllSets();
+    if (projectId) {
       const cardId = uuid();
-      await createCard(cardId, setId);
-      console.table(await getCardsBySetId(setId));
+      await createCard(cardId, projectId);
+      console.table(await getAllCards());
     }
   };
 

@@ -9,7 +9,8 @@ import { v4 as uuid } from 'uuid';
 import { projectSchema, Project, ProjectTypes } from '../schemas/project';
 import { cardDefaultValues, cardSchema, Card, ftsCardSchema, cardTriggers } from '../schemas/card';
 import { OPERATIONS, dbPath } from './consts';
-import { cardFieldsToQuery, RequireOne } from './utils';
+import { cardFieldsToQuery } from './utils';
+import type { RequireOne } from '../helpers';
 
 const getTableInfo = (db, table) => {
   const sql = `PRAGMA table_info(${table})`;
@@ -108,7 +109,7 @@ async function getAllCards(): Promise<Card[]> {
     });
     return cards;
   } catch (err) {
-    console.error(err);
+    throw new Error(err);
   }
 }
 
@@ -142,7 +143,7 @@ async function createSet({ name, code }: { name: string; code: string }) {
 async function getCardsBySetId(projectId: string): Promise<Card[]> {
   let db = await getDatabase();
   let cards: Card[] = [];
-  db.each(`SELECT * FROM cards WHERE projectId = ?`, [projectId], (row) => cards.push(row));
+  db.each(`SELECT * FROM cards WHERE projectId = ?`, [projectId], (row: Card) => cards.push(row));
   return cards;
 }
 
@@ -158,13 +159,10 @@ async function createCard(projectId: string) {
   }
 }
 
-async function getCardById(cardId: string): Promise<Card> {
+async function getCardById(cardId: string): Promise<Card | undefined> {
   let db = await getDatabase();
   let card;
-  db.each(`SELECT * FROM cards WHERE cardId = ?`, [cardId], (row) => {
-    card = JSON.parse(row.data);
-  });
-
+  db.each(`SELECT * FROM cards WHERE cardId = ?`, [cardId], (row: Card) => (card = row));
   return card;
 }
 

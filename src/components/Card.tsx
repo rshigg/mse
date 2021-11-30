@@ -4,7 +4,7 @@ import cx from 'classnames';
 
 import ContentEditable from 'components/ContentEditable';
 import { Card } from 'schemas/card';
-import { cardFromScryfall } from 'utils';
+import { cardFromScryfall } from 'helpers';
 
 import cardValues from './consider.json';
 import { belerenSmallCaps, gotham, mplantin } from 'styles/fonts.css';

@@ -1,11 +1,6 @@
 import type { Card } from 'schemas/card';
 import { OPERATIONS } from './consts';
-
-export type RequireOne<T, K extends keyof T> = {
-  [X in Exclude<keyof T, K>]?: T[X];
-} & {
-  [P in K]-?: T[P];
-};
+import type { RequireOne } from 'helpers';
 
 export function toDatabaseFormat(
   fields: RequireOne<Card, 'cardId'>

@@ -1,6 +1,12 @@
 import { Card } from './schemas/card';
 import { ScryfallCard } from './schemas/scryfall';
 
+export type RequireOne<T, K extends keyof T> = {
+  [X in Exclude<keyof T, K>]?: T[X];
+} & {
+  [P in K]-?: T[P];
+};
+
 export const cardFromScryfall = (sfJSON: ScryfallCard): Card => {
   return {
     cardId: sfJSON.id,

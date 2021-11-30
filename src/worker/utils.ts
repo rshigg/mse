@@ -1,4 +1,5 @@
 import type { Card } from 'schemas/card';
+import { OPERATIONS } from './consts';
 
 export type RequireOne<T, K extends keyof T> = {
   [X in Exclude<keyof T, K>]?: T[X];
@@ -19,10 +20,7 @@ export function toDatabaseFormat(
   return fieldData;
 }
 
-export function cardFieldsToQuery(
-  fields: RequireOne<Card, 'cardId'>,
-  queryType: 'INSERT' | 'UPDATE' | 'DELETE'
-) {
+export function cardFieldsToQuery(fields: RequireOne<Card, 'cardId'>, queryType: OPERATIONS) {
   const fieldNames = Object.keys(fields);
   const fieldData = toDatabaseFormat(fields);
   switch (queryType) {
@@ -38,3 +36,8 @@ export function cardFieldsToQuery(
       throw new Error('Invalid query type');
   }
 }
+
+// Creates an array of table delete queries
+export const deleteTableQueries = (tables: string[]) => {
+  return tables.map((table) => `DROP TABLE IF EXISTS ${table}`).join(';');
+};

@@ -4,11 +4,12 @@ import initSqlJs from '@rshig/sql';
 import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
+import { v4 as uuid } from 'uuid';
 
-import { projectSchema, Project } from '../schemas/project';
+import { projectSchema, Project, ProjectTypes } from '../schemas/project';
 import { cardDefaultValues, cardSchema, Card, ftsCardSchema, cardTriggers } from '../schemas/card';
 import { OPERATIONS, dbPath } from './consts';
-import { cardFieldsToQuery } from './utils';
+import { cardFieldsToQuery, RequireOne } from './utils';
 
 const getTableInfo = (db, table) => {
   const sql = `PRAGMA table_info(${table})`;
@@ -20,11 +21,6 @@ const getTableInfo = (db, table) => {
     }
     return data;
   });
-};
-
-// Creates an array of table delete queries
-const deleteTables = (tables: string[]) => {
-  return tables.map((table) => `DROP TABLE IF EXISTS ${table}`).join(';');
 };
 
 const idbBackend = new IndexedDBBackend();
@@ -80,7 +76,7 @@ async function getDatabase() {
     _db.exec('VACUUM;');
 
     _db.exec(`
-      CREATE TABLE IF NOT EXISTS sets (${projectSchema});
+      CREATE TABLE IF NOT EXISTS projects (${projectSchema});
       CREATE TABLE IF NOT EXISTS cards (${cardSchema});
       CREATE VIRTUAL TABLE IF NOT EXISTS cards_fts USING fts5(${ftsCardSchema});
       ${cardTriggers}
@@ -94,7 +90,9 @@ async function getAllSets(): Promise<Project[]> {
   try {
     let db = await getDatabase();
     let sets: Project[] = [];
-    db.each('SELECT * FROM sets', null, (row: Project) => sets.push(row));
+    db.each(`SELECT * FROM projects WHERE type = '${ProjectTypes.SET}'`, null, (row: Project) =>
+      sets.push(row)
+    );
     return sets;
   } catch (error) {
     throw new Error(error);
@@ -114,18 +112,31 @@ async function getAllCards(): Promise<Card[]> {
   }
 }
 
-async function getSetById(projectId: string): Promise<Project | undefined> {
+async function getProjectByCode(code: string): Promise<Project | undefined> {
   let db = await getDatabase();
-  let set: Project | undefined;
-  db.each(`SELECT * FROM sets WHERE projectId = ?`, [projectId], (row: Project) => {
-    set = row;
-  });
-  return set;
+  let project: Project | undefined;
+  db.each(
+    `SELECT * FROM projects WHERE code = upper(?)`,
+    [code],
+    (row: Project) => (project = row)
+  );
+  return project;
 }
 
-async function createSet({ projectId, name, code }: Project) {
+async function createProject(type: ProjectTypes, name: string, code: string) {
   let db = await getDatabase();
-  db.run(`INSERT INTO sets (projectId, name, code) VALUES (?, ?, ?)`, [projectId, name, code]);
+  let projectId = uuid();
+  db.run(`INSERT INTO projects (projectId, type, name, code) VALUES (?, ?, ?, ?)`, [
+    projectId,
+    type,
+    name,
+    code.toUpperCase(),
+  ]);
+  return projectId;
+}
+
+async function createSet({ name, code }: { name: string; code: string }) {
+  createProject(ProjectTypes.SET, name, code);
 }
 
 async function getCardsBySetId(projectId: string): Promise<Card[]> {
@@ -135,10 +146,11 @@ async function getCardsBySetId(projectId: string): Promise<Card[]> {
   return cards;
 }
 
-async function createCard(cardId: string, projectId: string) {
+async function createCard(projectId: string) {
   try {
     let db = await getDatabase();
-    const fields = { cardId, projectId, ...cardDefaultValues };
+    const newCardId = uuid();
+    const fields: Card = { cardId: newCardId, projectId, ...cardDefaultValues };
     const [query, data] = cardFieldsToQuery(fields, OPERATIONS.INSERT);
     db.run(query, data);
   } catch (err) {
@@ -156,7 +168,7 @@ async function getCardById(cardId: string): Promise<Card> {
   return card;
 }
 
-async function updateCard(fields: Partial<Card>) {
+async function updateCard(fields: RequireOne<Card, 'cardId'>) {
   let db = await getDatabase();
   const [query, data] = cardFieldsToQuery(fields, OPERATIONS.UPDATE);
   db.run(query, data);
@@ -165,7 +177,7 @@ async function updateCard(fields: Partial<Card>) {
 const methods = {
   getAllSets,
   getAllCards,
-  getSetById,
+  getProjectByCode,
   createSet,
   getCardsBySetId,
   createCard,

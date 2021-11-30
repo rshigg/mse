@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field } from 'formik';
-import { v4 as uuid } from 'uuid';
 
 import Card from 'components/Card';
 import { useWorker } from 'worker/WorkerContext';
-import { Project, projectDefaultValues } from 'schemas/project';
+import { Project, ProjectDefaultValues, projectDefaultValues } from 'schemas/project';
 
 const Home = () => {
   const { getAllSets, createSet, createCard, getAllCards } = useWorker();
@@ -20,17 +19,15 @@ const Home = () => {
     getSets();
   }, []);
 
-  const handleSubmit = async (values: Project) => {
-    const newProjectId = uuid();
-    await createSet({ ...values, projectId: newProjectId });
-    getSets();
+  const handleSubmit = async (values: ProjectDefaultValues) => {
+    await createSet(values);
+    await getSets();
   };
 
   const createNewCard = async () => {
     const [{ projectId }] = await getAllSets();
     if (projectId) {
-      const cardId = uuid();
-      await createCard(cardId, projectId);
+      await createCard(projectId);
       console.table(await getAllCards());
     }
   };

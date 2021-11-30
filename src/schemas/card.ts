@@ -1,3 +1,5 @@
+import { fieldsToSchema } from './utils';
+
 export type Card = {
   cardId: string;
   projectId: string;
@@ -19,7 +21,7 @@ export type Card = {
   notes?: string;
 };
 
-export const cardDefaultValues: Partial<Card> = {
+export const cardDefaultValues: Omit<Card, 'cardId' | 'projectId'> = {
   name: '',
   manaCost: '',
   cmc: 0,
@@ -39,11 +41,6 @@ export const cardDefaultValues: Partial<Card> = {
 };
 
 // DB Schemas
-const fieldsToSchema = (fields: object) =>
-  Object.entries(fields)
-    .map(([key, value]) => `${key} ${value}`)
-    .join(', ');
-
 const commonFields = {
   name: `TEXT DEFAULT ''`,
   manaCost: `TEXT DEFAULT ''`,
@@ -80,10 +77,10 @@ export const ftsCardSchema = `
 `;
 
 // DB Triggers
-const fields = Object.keys(commonFields);
-const fieldNames = fields.join(', ');
-const newFields = fields.map((f) => `new.${f}`).join(', ');
-const oldFields = fields.map((f) => `old.${f}`).join(', ');
+const ftsFields = Object.keys(commonFields);
+const fieldNames = ftsFields.join(', ');
+const newFields = ftsFields.map((f) => `new.${f}`).join(', ');
+const oldFields = ftsFields.map((f) => `old.${f}`).join(', ');
 
 export const cardTriggers = `
   CREATE TRIGGER IF NOT EXISTS cards_ai AFTER INSERT ON cards

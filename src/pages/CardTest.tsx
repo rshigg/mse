@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field } from 'formik';
 
 import Card from 'components/Card';
-import { useWorker } from 'worker/WorkerContext';
+import { useLocalDB } from 'db/LocalDBContext';
 import { Project, ProjectDefaultValues, projectDefaultValues } from 'schemas/project';
 
 const Home = () => {
-  const { getAllSets, createSet, createCard, getAllCards } = useWorker();
+  const { getAllSets, createSet, createCard, getAllCards } = useLocalDB();
 
   const [cardSets, setCardSets] = useState<Project[]>([]);
 
@@ -25,9 +25,9 @@ const Home = () => {
   };
 
   const createNewCard = async () => {
-    const [{ projectId }] = await getAllSets();
-    if (projectId) {
-      await createCard(projectId);
+    const [project] = await getAllSets();
+    if (project) {
+      await createCard(project);
       console.table(await getAllCards());
     }
   };

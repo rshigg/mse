@@ -1,5 +1,4 @@
 // TODO: REMOVE ONCE ABSURD-SQL MIGRATES TO TS
-// @ts-nocheck
 import initSqlJs from '@rshig/sql';
 import { SQLiteFS } from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
@@ -216,7 +215,7 @@ const methods = {
   deleteCard,
 };
 
-export type MainWorker = typeof methods;
+export type DBMethods = typeof methods;
 
 init();
 

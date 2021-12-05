@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useTable, Column } from 'react-table';
 
-import { useWorker } from 'worker/WorkerContext';
+import { useLocalDB } from 'db/LocalDBContext';
 import type { Card } from 'schemas/card';
 import type { Project } from 'schemas/project';
 import { srOnly } from 'styles/utils.css';
@@ -12,7 +12,7 @@ import { cleanManaCost } from 'helpers';
 
 const ProjectPage = () => {
   const { projectCode } = useParams();
-  const db = useWorker();
+  const db = useLocalDB();
   const { getProjectByCode, getCardsByProjectCode, createCard } = db;
 
   const [project, setProject] = React.useState<Project | null>(null);

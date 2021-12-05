@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 
-import WorkerProvider from 'worker/WorkerContext';
+import LocalDBProvider from 'db/LocalDBContext';
 import CardTest from 'pages/CardTest';
 import ProjectPage from 'pages/Project';
 
@@ -17,7 +17,7 @@ const Layout = () => {
 
 function App() {
   return (
-    <WorkerProvider>
+    <LocalDBProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route path="/" element={<></>} />
@@ -27,7 +27,7 @@ function App() {
           </Route>
         </Route>
       </Routes>
-    </WorkerProvider>
+    </LocalDBProvider>
   );
 }
 

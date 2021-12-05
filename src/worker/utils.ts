@@ -1,32 +1,53 @@
 import type { Card } from 'schemas/card';
 import { OPERATIONS } from './consts';
-import type { RequireOne } from 'helpers';
+import { RequireOne, entries } from 'helpers';
 
-export function toDatabaseFormat(
-  fields: RequireOne<Card, 'cardId'>
-): Array<string | number | null> {
-  const vals = Object.values(fields);
-  const fieldData = vals.map((data) => {
-    if (Array.isArray(data)) {
-      return data.join(',');
-    }
-    return data;
-  });
-  return fieldData;
+export function toDatabaseFormat(fields: Record<string, any>): {
+  [key: string]: string | number | null;
+} {
+  let data: { [key: string]: string | number | null } = {};
+  for (let [key, val] of entries(fields)) {
+    let value = val;
+    if (typeof value === 'undefined') value = null;
+    else if (Array.isArray(value)) value = val.join(',');
+    else if (value instanceof Object) value = JSON.stringify(value);
+    data[key] = value;
+  }
+  return data;
 }
 
-export function cardFieldsToQuery(fields: RequireOne<Card, 'cardId'>, queryType: OPERATIONS) {
-  const fieldNames = Object.keys(fields);
-  const fieldData = toDatabaseFormat(fields);
+export function cardFieldsToQuery(
+  fields: RequireOne<Card, 'cardId'>,
+  queryType: OPERATIONS.INSERT | OPERATIONS.UPDATE,
+  fieldsToUse?: string[]
+): { query: string; data: (string | number | null)[]; names: string[] } {
+  let normalizedFields = toDatabaseFormat(fields);
+  if (fieldsToUse) {
+    normalizedFields = fieldsToUse.reduce(
+      (acc, field) => ({ ...acc, [field]: normalizedFields[field] }),
+      {}
+    );
+  }
+  const { names, data } = entries(normalizedFields).reduce<{
+    names: string[];
+    data: (string | number | null)[];
+  }>(
+    (acc, [key, val]) => ({
+      names: [...acc.names, key],
+      data: [...acc.data, val],
+    }),
+    { names: [], data: [] }
+  );
+
   switch (queryType) {
     case 'INSERT':
-      const placeholders = new Array(fieldNames.length).fill('?').join(',');
-      return [`INSERT INTO cards (${fieldNames.join(',')}) VALUES (${placeholders})`, fieldData];
+      const placeholders = new Array(names.length).fill('?').join(',');
+      const insert = `INSERT OR IGNORE INTO cards (${names.join(',')}) VALUES (${placeholders})`;
+      return { query: insert, data, names };
     case 'UPDATE':
-      const set = fieldNames.map((fieldName) => `${fieldName} = ?`).join(',');
-      return [`UPDATE cards SET ${set}`, fieldData];
-    case 'DELETE':
-      return [`DELETE FROM cards WHERE cardId = ?`, [fields.cardId]];
+      const set = names.map((name) => `${name} = ?`).join(',');
+      const update = `UPDATE cards SET ${set} WHERE cardId = ?`;
+      return { query: update, data: [...data, fields.cardId], names };
     default:
       throw new Error('Invalid query type');
   }

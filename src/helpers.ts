@@ -1,5 +1,7 @@
-import { Card } from './schemas/card';
+import { Project } from 'schemas/project';
+import { Card, cardDefaultValues } from './schemas/card';
 import { ScryfallCard } from './schemas/scryfall';
+import { v4 as uuid } from 'uuid';
 
 export type RequireOne<T, K extends keyof T> = {
   [X in Exclude<keyof T, K>]?: T[X];
@@ -7,23 +9,45 @@ export type RequireOne<T, K extends keyof T> = {
   [P in K]-?: T[P];
 };
 
-export const cardFromScryfall = (sfJSON: ScryfallCard): Card => {
+type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T][];
+export function entries<T>(obj: T): Entries<T> {
+  return Object.entries(obj) as any;
+}
+
+export const constructCard = (project: Project, fields: Partial<Card>): Card => {
+  const card: Card = {
+    cardId: fields.cardId || uuid(),
+    projectId: project.projectId,
+    projectCode: project.code,
+    ...cardDefaultValues,
+    ...fields,
+  };
+  return card;
+};
+
+export const cardFromScryfall = (sfJSON: ScryfallCard): Omit<Card, 'projectId'> => {
+  // TODO: handle DFCs
   return {
     cardId: sfJSON.id,
-    projectId: sfJSON.set_id,
+    projectCode: sfJSON.set,
     name: sfJSON.name,
     manaCost: sfJSON.mana_cost,
     cmc: sfJSON.cmc,
-    colors: sfJSON.colors.join(','),
-    colorIdentity: sfJSON.color_identity.join(','),
+    colors: sfJSON.colors?.join(',') || '',
+    colorIdentity: sfJSON.color_identity?.join(',') || '',
     typeLine: sfJSON.type_line,
     rarity: sfJSON.rarity,
     text: sfJSON.oracle_text,
-    flavorText: sfJSON.flavor_text,
-    power: sfJSON.power,
-    toughness: sfJSON.toughness,
-    loyalty: sfJSON.loyalty,
+    flavorText: sfJSON.flavor_text || null,
+    power: sfJSON.power || null,
+    toughness: sfJSON.toughness || null,
+    loyalty: sfJSON.loyalty || null,
     artist: sfJSON.artist,
     borderColor: sfJSON.border_color,
   };
+};
+
+// removes curly brackets from mana cost
+export const cleanManaCost = (manaCost: string): string => {
+  return manaCost.replace(/[{}]/g, '');
 };

@@ -1,8 +1,17 @@
 import { fieldsToSchema } from './utils';
 
+const borderColor = {
+  black: 'black',
+  silver: 'silver',
+  white: 'white',
+  borderless: 'borderless',
+  gold: 'gold',
+};
+
 export type Card = {
   cardId: string;
   projectId: string;
+  projectCode: string;
   name: string;
   manaCost: string;
   cmc: number;
@@ -11,7 +20,7 @@ export type Card = {
   typeLine: string;
   rarity: string;
   text: string;
-  flavorText?: string;
+  flavorText?: string | null;
   power?: string | null;
   toughness?: string | null;
   loyalty?: string | null;
@@ -19,9 +28,10 @@ export type Card = {
   borderColor: string;
   tag?: string;
   notes?: string;
+  createdAt?: string;
 };
 
-export const cardDefaultValues: Omit<Card, 'cardId' | 'projectId'> = {
+export const cardDefaultValues: Omit<Card, 'cardId' | 'projectId' | 'projectCode'> = {
   name: '',
   manaCost: '',
   cmc: 0,
@@ -31,56 +41,72 @@ export const cardDefaultValues: Omit<Card, 'cardId' | 'projectId'> = {
   rarity: 'common',
   text: '',
   flavorText: '',
-  power: null,
-  toughness: null,
-  loyalty: null,
   artist: '',
-  borderColor: 'black',
+  borderColor: borderColor.black,
   tag: '',
   notes: '',
 };
 
+export type SortableFields = keyof Omit<
+  Card,
+  'cardId' | 'projectId' | 'projectCode' | 'loyalty' | 'artist' | 'notes'
+>;
+
 // DB Schemas
-const commonFields = {
-  name: `TEXT DEFAULT ''`,
-  manaCost: `TEXT DEFAULT ''`,
-  typeLine: `TEXT DEFAULT ''`,
-  text: `TEXT DEFAULT ''`,
-  flavorText: `TEXT DEFAULT ''`,
-  artist: `TEXT DEFAULT ''`,
-  tag: `TEXT`,
-  notes: `TEXT DEFAULT ''`,
-};
 
 // the explicit type is to make sure that cardFields has
 // all the same fields as Card
 const cardFields: Record<keyof Card, string> = {
-  cardId: `TEXT NOT NULL`,
+  cardId: `TEXT NOT NULL UNIQUE`,
   projectId: `TEXT NOT NULL`,
+  projectCode: `TEXT NOT NULL REFERENCES projects(code) ON UPDATE CASCADE ON DELETE CASCADE`,
+  name: `TEXT DEFAULT ''`,
+  manaCost: `TEXT DEFAULT ''`,
   cmc: `REAL DEFAULT 0`,
   colors: `TEXT DEFAULT ''`,
   colorIdentity: `TEXT DEFAULT ''`,
+  typeLine: `TEXT DEFAULT ''`,
   rarity: `TEXT DEFAULT 'common'`,
+  text: `TEXT DEFAULT ''`,
+  flavorText: `TEXT DEFAULT ''`,
   power: `TEXT`,
   toughness: `TEXT`,
   loyalty: `TEXT`,
-  borderColor: `TEXT DEFAULT 'black'`,
-  ...commonFields,
+  artist: `TEXT DEFAULT ''`,
+  borderColor: `TEXT DEFAULT ${borderColor.black}`,
+  tag: `TEXT`,
+  notes: `TEXT DEFAULT ''`,
+  createdAt: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
 };
 
-export const cardSchema = fieldsToSchema({ id: 'INTEGER PRIMARY KEY', ...cardFields });
+const internalFields = {
+  id: 'INTEGER PRIMARY KEY',
+};
+
+export const cardSchema = `${fieldsToSchema({ ...internalFields, ...cardFields })}`;
+
+const ftsFields = {
+  cardId: 'UNINDEXED',
+  projectCode: 'UNINDEXED',
+  name: '',
+  typeLine: '',
+  text: '',
+  flavorText: '',
+  artist: '',
+  tag: '',
+};
 
 export const ftsCardSchema = `
-  ${Object.keys(commonFields).join(',\n')},
+  ${fieldsToSchema(ftsFields)},
   content='cards',
   content_rowid='id'
 `;
 
 // DB Triggers
-const ftsFields = Object.keys(commonFields);
-const fieldNames = ftsFields.join(', ');
-const newFields = ftsFields.map((f) => `new.${f}`).join(', ');
-const oldFields = ftsFields.map((f) => `old.${f}`).join(', ');
+const ftsColumns = Object.keys(ftsFields);
+const fieldNames = ftsColumns.join(', ');
+const newFields = ftsColumns.map((f) => `new.${f}`).join(', ');
+const oldFields = ftsColumns.map((f) => `old.${f}`).join(', ');
 
 export const cardTriggers = `
   CREATE TRIGGER IF NOT EXISTS cards_ai AFTER INSERT ON cards

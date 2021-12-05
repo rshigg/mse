@@ -28,7 +28,7 @@ export const projectFields: Record<keyof Project, string> = {
   projectId: `TEXT PRIMARY KEY`,
   type: `TEXT NOT NULL`,
   name: `TEXT NOT NULL`,
-  code: `CHAR(3) NOT NULL`,
+  code: `CHAR(3) NOT NULL UNIQUE`,
   lang: `CHAR(2) DEFAULT 'en'`,
 };
 

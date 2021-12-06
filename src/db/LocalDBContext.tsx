@@ -4,10 +4,10 @@ import { initBackend } from 'absurd-sql/dist/indexeddb-main-thread.js';
 import { wrap } from 'comlink/dist/esm/comlink';
 
 import DBWorker from './db.worker?worker';
-import type { DBMethods } from './db.worker';
+import type { DBClass } from './db.worker';
 
 const worker: Worker = new DBWorker();
-const instance = wrap<DBMethods>(worker);
+const instance = wrap<DBClass>(worker);
 initBackend(worker);
 
 if (process.env.NODE_ENV === 'development') {

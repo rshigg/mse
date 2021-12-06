@@ -7,3 +7,5 @@ export enum OPERATIONS {
 }
 
 export const dbPath = '/sql/mse.sqlite';
+
+export const dbVersion = 1;

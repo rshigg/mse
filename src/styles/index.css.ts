@@ -1,12 +1,18 @@
 import { globalStyle } from '@vanilla-extract/css';
 
-globalStyle('body', {
+const backupFonts = `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`;
+
+globalStyle('html, body', {
   margin: 0,
-  fontFamily: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-  'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif`,
-  // @ts-ignore
-  '-webkit-font-smoothing': 'antialiased',
-  '-moz-osx-font-smoothing': 'grayscale',
+  fontFamily: `'Inter', ${backupFonts}`,
+  WebkitFontSmoothing: 'antialiased',
+  MozOsxFontSmoothing: 'grayscale',
+  '@supports': {
+    '(font-variation-settings: normal)': {
+      fontFamily: `'Inter var', ${backupFonts}`,
+    },
+  },
 });
 
 // https://adrianroselli.com/2020/11/under-engineered-responsive-tables.html

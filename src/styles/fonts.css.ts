@@ -1,4 +1,9 @@
-import { fontFace, style } from '@vanilla-extract/css';
+import { fontFace, globalFontFace, style } from '@vanilla-extract/css';
+
+globalFontFace('Inter', {
+  src: `url('https://rsms.me/inter/inter.css')`,
+  fontDisplay: 'swap',
+});
 
 const belerenBoldFF = fontFace({
   src: `local('Beleren'),

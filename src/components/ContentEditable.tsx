@@ -7,10 +7,10 @@ const activationCostRegex =
   /\n((?<mana>(\d|w|u|b|r|g|x|y)+),)?(\s?(?<word>[\w\s]+),)?(\s?(?<tap>t))?:/gim;
 
 type CEProps = {
-  value: String;
-  onChange: Function;
-  label: String;
-  className?: String;
+  value: string;
+  // onChange: (event: ChangeEvent<HTMLDivElement>) => void;
+  label: string;
+  className?: string;
   tag?: ElementType;
   convertSymbols?: boolean;
   style?: CSSProperties;

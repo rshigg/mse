@@ -4,7 +4,7 @@ import cx from 'classnames';
 
 import ContentEditable from 'components/ContentEditable';
 import { Card } from 'schemas/card';
-import { cardFromScryfall } from 'helpers';
+import { cardFromScryfall } from 'utils/helpers';
 
 import cardValues from './consider.json';
 import { belerenSmallCaps, gotham, mplantin } from 'styles/fonts.css';
@@ -20,10 +20,11 @@ import {
 
 const testImage = '/consider.png';
 
-const padSetNum = (num: Number) => num.toString().padStart(3, '0');
+const padSetNum = (num: number) => num.toString().padStart(3, '0');
 const cardNumber = padSetNum(44);
 const totalCards = padSetNum(277);
 
+// eslint-disable-next-line react/prop-types
 const CardForm = ({ set = cardValues.set }) => {
   const { values } = useFormikContext<Card>();
   const { rarity } = values;
@@ -346,7 +347,7 @@ const CardForm = ({ set = cardValues.set }) => {
 
 const initialValues = cardFromScryfall(cardValues);
 
-export default function () {
+export default function CardFormWrapper() {
   return (
     <Formik initialValues={initialValues} onSubmit={() => {}}>
       <Form>

@@ -1,6 +1,6 @@
 import { Project } from 'schemas/project';
-import { Card, cardDefaultValues } from './schemas/card';
-import { ScryfallCard } from './schemas/scryfall';
+import { Card, cardDefaultValues } from 'schemas/card';
+import { ScryfallCard } from 'schemas/scryfall';
 import { v4 as uuid } from 'uuid';
 
 export type RequireOne<T, K extends keyof T> = {
@@ -11,7 +11,7 @@ export type RequireOne<T, K extends keyof T> = {
 
 type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T][];
 export function entries<T>(obj: T): Entries<T> {
-  return Object.entries(obj) as any;
+  return Object.entries(obj) as Entries<T>;
 }
 
 export const constructCard = (project: Project, fields: Partial<Card>): Card => {

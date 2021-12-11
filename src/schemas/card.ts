@@ -1,5 +1,3 @@
-import { fieldsToSchema } from './utils';
-
 const borderColor = {
   black: 'black',
   silver: 'silver',
@@ -56,7 +54,7 @@ export type SortableFields = keyof Omit<
 
 // the explicit type is to make sure that cardFields has
 // all the same fields as Card
-const cardFields: Record<keyof Card, string> = {
+export const cardFields: Record<keyof Card, string> = {
   cardId: `TEXT NOT NULL UNIQUE`,
   projectId: `TEXT NOT NULL`,
   projectCode: `TEXT NOT NULL REFERENCES projects(code) ON UPDATE CASCADE ON DELETE CASCADE`,
@@ -79,13 +77,11 @@ const cardFields: Record<keyof Card, string> = {
   createdAt: `TIMESTAMP DEFAULT CURRENT_TIMESTAMP`,
 };
 
-const internalFields = {
+export const internalFields = {
   id: 'INTEGER PRIMARY KEY',
 };
 
-export const cardSchema = `${fieldsToSchema({ ...internalFields, ...cardFields })}`;
-
-const ftsFields = {
+export const ftsFields = {
   cardId: 'UNINDEXED',
   projectCode: 'UNINDEXED',
   name: '',
@@ -95,12 +91,6 @@ const ftsFields = {
   artist: '',
   tag: '',
 };
-
-export const ftsCardSchema = `
-  ${fieldsToSchema(ftsFields)},
-  content='cards',
-  content_rowid='id'
-`;
 
 // DB Triggers
 const ftsColumns = Object.keys(ftsFields);

@@ -8,17 +8,17 @@ import type { Project } from 'schemas/project';
 import { srOnly } from 'styles/utils.css';
 import { table as tableStyles, th, td } from 'styles/table.css';
 
-import { cleanManaCost } from 'helpers';
+import { cleanManaCost } from 'utils/helpers';
 
 const ProjectPage = () => {
-  const { projectCode } = useParams();
+  const { projectCode = '' } = useParams();
   const db = useLocalDB();
   const { getProjectByCode, getCardsByProjectCode, createCard } = db;
 
   const [project, setProject] = React.useState<Project | null>(null);
   const [cards, setCards] = React.useState<Card[]>([]);
 
-  const fetchCards = async (projectCode: string) => {
+  const fetchCards = async () => {
     const cards = await getCardsByProjectCode(projectCode);
     setCards(cards);
   };
@@ -29,7 +29,7 @@ const ProjectPage = () => {
         const project = await getProjectByCode(projectCode);
         if (project) {
           setProject(project);
-          fetchCards(projectCode);
+          fetchCards();
         }
       };
 
@@ -40,7 +40,7 @@ const ProjectPage = () => {
   const handleCreateCard = async () => {
     if (project?.code) {
       await createCard(project);
-      await fetchCards(project.code);
+      await fetchCards();
     }
   };
 
@@ -70,24 +70,33 @@ const ProjectPage = () => {
             Cards
           </caption>
           <thead>
-            {headerGroups.map((headerGroup) => (
-              <tr {...headerGroup.getHeaderGroupProps()}>
-                {headerGroup.headers.map((column) => (
-                  <th {...column.getHeaderProps()} className={th}>
-                    {column.render('Header')}
-                  </th>
-                ))}
-              </tr>
-            ))}
+            {headerGroups.map((headerGroup) => {
+              const { key: headerGroupKey, ...headerGroupProps } =
+                headerGroup.getHeaderGroupProps();
+              return (
+                <tr key={headerGroupKey} {...headerGroupProps}>
+                  {headerGroup.headers.map((column) => {
+                    const { key: headerKey, ...headerProps } = column.getHeaderProps();
+                    return (
+                      <th key={headerKey} {...headerProps} className={th}>
+                        {column.render('Header')}
+                      </th>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </thead>
           <tbody {...getTableBodyProps()}>
             {rows.map((row) => {
               prepareRow(row);
+              const { key: rowKey, ...rowProps } = row.getRowProps();
               return (
-                <tr {...row.getRowProps()}>
+                <tr key={rowKey} {...rowProps}>
                   {row.cells.map((cell) => {
+                    const { key: cellKey, ...cellProps } = cell.getCellProps();
                     return (
-                      <td {...cell.getCellProps()} className={td}>
+                      <td key={cellKey} {...cellProps} className={td}>
                         {cell.render('Cell')}
                       </td>
                     );

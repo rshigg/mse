@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-// @ts-ignore
+// @ts-expect-error Waiting for absurd-sql to migrate to TS
 import { initBackend } from 'absurd-sql/dist/indexeddb-main-thread.js';
 import { wrap } from 'comlink/dist/esm/comlink';
 
@@ -11,7 +11,7 @@ const instance = wrap<DBClass>(worker);
 initBackend(worker);
 
 if (process.env.NODE_ENV === 'development') {
-  // @ts-ignore
+  // @ts-expect-error Only for debugging
   window.db = instance;
 }
 

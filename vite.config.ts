@@ -5,6 +5,7 @@ import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import crossOriginIsolation from 'vite-plugin-cross-origin-isolation';
 import { VitePWA } from 'vite-plugin-pwa';
+import eslintPlugin from 'vite-plugin-eslint';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,6 +15,10 @@ export default defineConfig({
     },
   },
   plugins: [
+    eslintPlugin({
+      throwOnWarning: false,
+      throwOnError: false,
+    }),
     reactRefresh(),
     // TODO: Configure PWA
     VitePWA(),

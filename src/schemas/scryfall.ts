@@ -46,7 +46,7 @@ export interface CardFace {
   type_line: string;
   oracle_text: string;
   colors: string[];
-  color_indicator: any[];
+  color_indicator: string[];
   power: string;
   toughness: string;
   flavor_text: string;
@@ -73,7 +73,7 @@ export type ScryfallCard = {
   mana_cost: string;
   loyalty?: string;
   colors: string[];
-  color_indicator?: any[];
+  color_indicator?: string[];
   color_identity: string[];
   legalities: Partial<Legalities>;
   reserved: boolean;

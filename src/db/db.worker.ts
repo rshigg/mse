@@ -6,16 +6,43 @@ import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 import { expose } from 'comlink/dist/esm/comlink';
 import { v4 as uuid } from 'uuid';
 
-import { projectSchema, Project, ProjectTypes } from '../schemas/project';
-import { cardSchema, Card, ftsCardSchema, cardTriggers, SortableFields } from '../schemas/card';
+import { objectToSchema, fieldsToQuery, deleteTableQueries } from '../utils/db';
+import { constructCard, RequireOne } from '../utils/helpers';
 import { OPERATIONS, dbPath, dbVersion } from './consts';
-import { cardFieldsToQuery, deleteTableQueries } from './utils';
-import { constructCard, RequireOne } from '../helpers';
+
+import { Project, projectFields, projectTypes } from '../schemas/project';
+import {
+  Card,
+  cardFields,
+  internalFields,
+  ftsFields,
+  cardTriggers,
+  SortableFields,
+} from '../schemas/card';
+
+const projectSchema = objectToSchema(projectFields);
+const cardSchema = objectToSchema({ ...internalFields, ...cardFields });
+const ftsCardSchema = `
+  ${objectToSchema(ftsFields)},
+  content='cards',
+  content_rowid='id'
+`;
 
 const idbBackend = new IndexedDBBackend();
 
+const createCardQuery = (
+  fields: Partial<Card>,
+  operation: OPERATIONS.INSERT | OPERATIONS.UPDATE,
+  fieldsToUse?: Array<keyof Card>
+) => {
+  return fieldsToQuery(fields, operation, 'cards', 'cardId', fieldsToUse);
+};
+
 class DB {
   ready: boolean;
+  SQL: unknown;
+  sqlFS: unknown;
+  db: unknown;
 
   constructor() {
     this.SQL = null;
@@ -24,11 +51,15 @@ class DB {
     this.ready = false;
   }
 
+  get isReady() {
+    return this.ready;
+  }
+
   getTableInfo(table: string, db = this.db) {
     const sql = `PRAGMA table_info(${table})`;
     const [{ columns, values }] = db.exec(sql);
     return values.map((row) => {
-      let data = {};
+      const data = {};
       for (let i = 0; i < row.length; i++) {
         data[columns[i]] = row[i];
       }
@@ -45,7 +76,7 @@ class DB {
     this.SQL.FS.mount(this.sqlFS, {}, '/sql');
 
     if (typeof SharedArrayBuffer === 'undefined') {
-      let stream = this.SQL.FS.open(dbPath, 'a+');
+      const stream = this.SQL.FS.open(dbPath, 'a+');
       await stream.node.contents.readIfFallback();
       this.SQL.FS.close(stream);
     }
@@ -65,7 +96,7 @@ class DB {
   async getDatabase() {
     await this.init();
     if (this.db == null) {
-      let _db = new this.SQL.Database(dbPath, { filename: true });
+      const _db = new this.SQL.Database(dbPath, { filename: true });
 
       _db.exec(`
         PRAGMA journal_mode=MEMORY;
@@ -98,7 +129,7 @@ class DB {
   }
 
   async deleteTable(tableNames: string[]) {
-    let db = await this.getDatabase();
+    const db = await this.getDatabase();
     db.exec(`
       BEGIN TRANSACTION;
       ${deleteTableQueries(tableNames)}
@@ -107,10 +138,10 @@ class DB {
   }
 
   async getAllSets(): Promise<Project[]> {
-    let projects: Project[] = [];
+    const projects: Project[] = [];
     try {
-      let db = await this.getDatabase();
-      db.each(`SELECT * FROM projects WHERE type = '${ProjectTypes.SET}'`, null, (row: Project) =>
+      const db = await this.getDatabase();
+      db.each(`SELECT * FROM projects WHERE type = '${projectTypes.SET}'`, null, (row: Project) =>
         projects.push(row)
       );
     } catch {
@@ -120,9 +151,9 @@ class DB {
   }
 
   async getAllCards(): Promise<Card[]> {
-    let cards: Card[] = [];
+    const cards: Card[] = [];
     try {
-      let db = await this.getDatabase();
+      const db = await this.getDatabase();
       db.each('SELECT * FROM cards', null, (row: Card) => {
         cards.push(row);
       });
@@ -133,7 +164,7 @@ class DB {
   }
 
   async getProjectByCode(code: string): Promise<Project | null> {
-    let db = await this.getDatabase();
+    const db = await this.getDatabase();
     let project = null;
     db.each(
       `SELECT * FROM projects WHERE code = lower(?)`,
@@ -143,9 +174,9 @@ class DB {
     return project;
   }
 
-  async createProject(type: ProjectTypes, name: string, code: string) {
-    let db = await this.getDatabase();
-    let projectId = uuid();
+  async createProject(type: string, name: string, code: string) {
+    const db = await this.getDatabase();
+    const projectId = uuid();
     db.run(`INSERT INTO projects (projectId, type, name, code) VALUES (?, ?, ?, ?)`, [
       projectId,
       type,
@@ -156,7 +187,7 @@ class DB {
   }
 
   async createSet({ name, code }: { name: string; code: string }) {
-    this.createProject(ProjectTypes.SET, name, code);
+    this.createProject(projectTypes.SET, name, code);
   }
 
   async getCardsByProjectCode(
@@ -164,11 +195,11 @@ class DB {
     sortBy: SortableFields = 'createdAt',
     sortDir: 'ASC' | 'DESC' = 'DESC'
   ): Promise<Card[]> {
-    let cards: Card[] = [];
-    let query = `SELECT * FROM cards WHERE projectCode = lower(?) ORDER BY ${sortBy} ${sortDir}`;
-    let data = [projectCode];
+    const cards: Card[] = [];
+    const query = `SELECT * FROM cards WHERE projectCode = lower(?) ORDER BY ${sortBy} ${sortDir}`;
+    const data = [projectCode];
     try {
-      let db = await this.getDatabase();
+      const db = await this.getDatabase();
       db.each(query, data, ({ id, ...card }: { id: number }) => cards.push(card as Card));
     } catch (err) {
       console.error(err);
@@ -178,9 +209,9 @@ class DB {
 
   async createCard(project: Project, fields: Partial<Card> = {}) {
     const newCard = constructCard(project, fields);
-    const { query, data } = cardFieldsToQuery(newCard, OPERATIONS.INSERT);
+    const { query, data } = createCardQuery(newCard, OPERATIONS.INSERT);
     try {
-      let db = await this.getDatabase();
+      const db = await this.getDatabase();
       await db.run(query, data);
     } catch (err) {
       console.error(err, fields);
@@ -189,13 +220,13 @@ class DB {
 
   async batchCreateCards(project: Project, cards: Partial<Card>[]) {
     try {
-      let db = await this.getDatabase();
+      const db = await this.getDatabase();
       db.exec(`BEGIN TRANSACTION`);
-      let { query, names } = cardFieldsToQuery(constructCard(project, {}), OPERATIONS.INSERT);
-      let stmt = db.prepare(query);
-      for (let card of cards) {
-        let fields = constructCard(project, card);
-        let { data } = cardFieldsToQuery(fields, OPERATIONS.INSERT, names);
+      const { query, names } = createCardQuery(constructCard(project, {}), OPERATIONS.INSERT);
+      const stmt = db.prepare(query);
+      for (const card of cards) {
+        const fields = constructCard(project, card);
+        const { data } = createCardQuery(fields, OPERATIONS.INSERT, names as Array<keyof Card>);
         stmt.run(data);
       }
       db.exec(`COMMIT`);
@@ -205,20 +236,20 @@ class DB {
   }
 
   async getCardById(cardId: string): Promise<Card | null> {
-    let db = await this.getDatabase();
+    const db = await this.getDatabase();
     let card = null;
     db.each(`SELECT * FROM cards WHERE cardId = ?`, [cardId], (row: Card) => (card = row));
     return card;
   }
 
   async updateCard(fields: RequireOne<Card, 'cardId'>) {
-    let db = await this.getDatabase();
-    const { query, data } = cardFieldsToQuery(fields, OPERATIONS.UPDATE);
+    const db = await this.getDatabase();
+    const { query, data } = fieldsToQuery(fields, OPERATIONS.UPDATE, 'cards', 'cardId');
     db.run(query, data);
   }
 
   async deleteCard(cardId: string) {
-    let db = await this.getDatabase();
+    const db = await this.getDatabase();
     db.run(`DELETE FROM cards WHERE cardId = ?`, [cardId]);
   }
 }

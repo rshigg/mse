@@ -1,15 +1,13 @@
-import { fieldsToSchema } from './utils';
-
-export enum ProjectTypes {
-  SET = 'set',
-}
-
 export type Project = {
   projectId: string;
   type: string;
   name: string;
   code: string;
   lang?: string;
+};
+
+export const projectTypes = {
+  SET: 'set',
 };
 
 export type ProjectDefaultValues = {
@@ -31,5 +29,3 @@ export const projectFields: Record<keyof Project, string> = {
   code: `CHAR(3) NOT NULL UNIQUE`,
   lang: `CHAR(2) DEFAULT 'en'`,
 };
-
-export const projectSchema = fieldsToSchema(projectFields);

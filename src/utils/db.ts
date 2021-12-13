@@ -68,3 +68,10 @@ export const objectToSchema = (fields: Fields) =>
   entries(fields)
     .map(([key, value]) => `${key}${value ? ` ${value}` : ''}`)
     .join(',\n');
+
+export const formatExecOutput = (
+  output: [{ columns: string[]; values: [string[]] }]
+): Record<string, string[]> => {
+  const [{ columns, values }] = output;
+  return columns.reduce((data, column, i) => ({ ...data, [column]: values[i] }), {});
+};

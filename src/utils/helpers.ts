@@ -14,7 +14,7 @@ export function entries<T>(obj: T): Entries<T> {
   return Object.entries(obj) as Entries<T>;
 }
 
-export const constructCard = (project: Project, fields: Partial<Card>): Card => {
+export const constructCard = (project: Project, fields: Partial<Card> = {}): Card => {
   const card: Card = {
     cardId: fields.cardId || uuid(),
     projectId: project.projectId,
@@ -44,6 +44,7 @@ export const cardFromScryfall = (sfJSON: ScryfallCard): Omit<Card, 'projectId'> 
     loyalty: sfJSON.loyalty || null,
     artist: sfJSON.artist,
     borderColor: sfJSON.border_color,
+    tag: sfJSON.collector_number,
   };
 };
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useTable, Column } from 'react-table';
+import { useTable, Column, useRowSelect, TableOptions, UseRowSelectOptions } from 'react-table';
 
 import { useLocalDB } from 'db/LocalDBContext';
 import type { Card } from 'schemas/card';
@@ -29,7 +29,7 @@ const ProjectPage = () => {
         const project = await getProjectByCode(projectCode);
         if (project) {
           setProject(project);
-          fetchCards();
+          await fetchCards();
         }
       };
 
@@ -46,6 +46,7 @@ const ProjectPage = () => {
 
   const columns = useMemo<Column<Card>[]>(
     () => [
+      { Header: 'Tags', accessor: ({ tag }) => tag },
       { Header: 'Name', accessor: 'name' },
       { Header: 'Cost', accessor: ({ manaCost }) => cleanManaCost(manaCost) },
       { Header: 'Type', accessor: 'typeLine' },
@@ -58,8 +59,15 @@ const ProjectPage = () => {
     []
   );
 
-  const tableData = useTable({ columns, data: cards });
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = tableData;
+  const tableOptions: TableOptions<Card> & UseRowSelectOptions<Card> = {
+    columns,
+    data: cards,
+    autoResetSelectedRows: false,
+  };
+  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable(
+    tableOptions,
+    useRowSelect
+  );
 
   return (
     <>

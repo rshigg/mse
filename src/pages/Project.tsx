@@ -1,48 +1,18 @@
-import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useMemo } from 'react';
 import { useTable, Column, useRowSelect, TableOptions, UseRowSelectOptions } from 'react-table';
+import cx from 'classnames';
 
-import { useLocalDB } from 'db/LocalDBContext';
 import type { Card } from 'schemas/card';
-import type { Project } from 'schemas/project';
-import { srOnly } from 'styles/utils.css';
 import { table as tableStyles, th, td } from 'styles/table.css';
+import { belerenSmallCaps } from 'styles/fonts.css';
 
 import { cleanManaCost } from 'utils/helpers';
+import useProject from 'hooks/useProject';
+import useCards from 'hooks/useCards';
 
 const ProjectPage = () => {
-  const { projectCode = '' } = useParams();
-  const db = useLocalDB();
-  const { getProjectByCode, getCardsByProjectCode, createCard } = db;
-
-  const [project, setProject] = React.useState<Project | null>(null);
-  const [cards, setCards] = React.useState<Card[]>([]);
-
-  const fetchCards = async () => {
-    const cards = await getCardsByProjectCode(projectCode);
-    setCards(cards);
-  };
-
-  useEffect(() => {
-    if (projectCode) {
-      const fetchProject = async () => {
-        const project = await getProjectByCode(projectCode);
-        if (project) {
-          setProject(project);
-          await fetchCards();
-        }
-      };
-
-      fetchProject();
-    }
-  }, [projectCode]);
-
-  const handleCreateCard = async () => {
-    if (project?.code) {
-      await createCard(project);
-      await fetchCards();
-    }
-  };
+  const { project } = useProject();
+  const { cards, handleCreateCard } = useCards(project);
 
   const columns = useMemo<Column<Card>[]>(
     () => [
@@ -74,8 +44,8 @@ const ProjectPage = () => {
       <button onClick={handleCreateCard}>New card</button>
       <div role="region" aria-labelledby="card-table-label" tabIndex={0}>
         <table {...getTableProps()} className={tableStyles}>
-          <caption id="card-table-label" className={srOnly}>
-            Cards
+          <caption id="card-table-label" className={cx(belerenSmallCaps)}>
+            {project?.name}
           </caption>
           <thead>
             {headerGroups.map((headerGroup) => {

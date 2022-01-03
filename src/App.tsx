@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Outlet } from 'react-router-dom';
 
 import LocalDBProvider from 'db/LocalDBContext';
+import KBarProvider from 'components/KBar';
 import CardTest from 'pages/CardTest';
 import ProjectPage from 'pages/Project';
 
@@ -18,15 +19,17 @@ const Layout = () => {
 function App() {
   return (
     <LocalDBProvider>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route path="/" element={<></>} />
-          <Route path="/cardtest" element={<CardTest />} />
-          <Route path="/:projectCode" element={<ProjectPage />}>
-            <Route path=":cardId" element={<></>} />
+      <KBarProvider>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route path="/" element={<></>} />
+            <Route path="/cardtest" element={<CardTest />} />
+            <Route path="/:projectCode" element={<ProjectPage />}>
+              <Route path=":cardId" element={<></>} />
+            </Route>
           </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </KBarProvider>
     </LocalDBProvider>
   );
 }

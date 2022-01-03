@@ -1,0 +1,40 @@
+.kbar-padding {
+  padding: 0.75em 1rem;
+}
+
+.kbar-bg {
+  width: 100%;
+  max-width: 600px;
+  background: white;
+  box-shadow: 0px 6px 20px hsl(222 69% 52% / 25%);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.kbar-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  padding: 1rem;
+}
+
+.kbar-section {
+  padding: 0.5rem 1rem;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  color: #585858;
+}
+
+.kbar-item {
+  font-size: 0.875rem;
+  border-left: 0px solid transparent;
+  &.active {
+    background: hsl(222 69% 52% / 10%);
+  }
+}
+
+.kbar-footer {
+  font-size: 0.75rem;
+  box-shadow: 0 -1px 0 0 #e0e3e8, 0 -3px 6px 0 rgba(69, 98, 155, 0.12);
+  z-index: 2;
+}

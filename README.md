@@ -4,20 +4,20 @@
 
 ### Projects
 
-- [] create a project
+- [ ] create a project
   - [x] DB side
-  - [] UI side
-- [] upload a project
-- [] export project
+  - [ ] UI side
+- [ ] upload a project
+- [ ] export project
 
 ### Cards
 
 - [x] create card
-- [] edit card
+- [ ] edit card
 - [x] delete card
 - [x] bulk add cards
-- [] render card
-- [] export card
+- [ ] render card
+- [ ] export card
 
 ## Local development
 

@@ -1,0 +1,32 @@
+.card-table {
+  box-sizing: border-box;
+  width: 100%;
+  border-collapse: collapse;
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  th {
+    border-bottom: 1px solid hsl(220, 13%, 91%);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    text-transform: uppercase;
+    background-color: hsl(210, 20%, 98%);
+  }
+  td {
+    border-bottom: 1px solid hsl(220, 13%, 91%);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    line-height: 1rem;
+    white-space: nowrap;
+  }
+}
+
+// https://adrianroselli.com/2020/11/under-engineered-responsive-tables.html
+[role='region'][aria-labelledby][tabindex] {
+  overflow: auto;
+  &:focus {
+    outline: 0.1em solid rgba(0, 0, 0, 0.1);
+  }
+}

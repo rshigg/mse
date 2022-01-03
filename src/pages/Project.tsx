@@ -3,8 +3,8 @@ import { useTable, Column, useRowSelect, TableOptions, UseRowSelectOptions } fro
 import cx from 'classnames';
 
 import type { Card } from 'schemas/card';
-import { table as tableStyles, th, td } from 'styles/table.css';
 import { belerenSmallCaps } from 'styles/fonts.css';
+import 'styles/table.scss';
 
 import { cleanManaCost } from 'utils/helpers';
 import useProject from 'hooks/useProject';
@@ -43,7 +43,7 @@ const ProjectPage = () => {
     <>
       <button onClick={handleCreateCard}>New card</button>
       <div role="region" aria-labelledby="card-table-label" tabIndex={0}>
-        <table {...getTableProps()} className={tableStyles}>
+        <table {...getTableProps()} className="card-table">
           <caption id="card-table-label" className={cx(belerenSmallCaps)}>
             {project?.name}
           </caption>
@@ -56,7 +56,7 @@ const ProjectPage = () => {
                   {headerGroup.headers.map((column) => {
                     const { key: headerKey, ...headerProps } = column.getHeaderProps();
                     return (
-                      <th key={headerKey} {...headerProps} className={th}>
+                      <th key={headerKey} {...headerProps}>
                         {column.render('Header')}
                       </th>
                     );
@@ -74,7 +74,7 @@ const ProjectPage = () => {
                   {row.cells.map((cell) => {
                     const { key: cellKey, ...cellProps } = cell.getCellProps();
                     return (
-                      <td key={cellKey} {...cellProps} className={td}>
+                      <td key={cellKey} {...cellProps}>
                         {cell.render('Cell')}
                       </td>
                     );
